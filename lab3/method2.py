@@ -70,3 +70,7 @@ model_trt = TRTModule()
 
 model_trt.load_state_dict(torch.load('mobilenetv2_trt.pth'))
 '''
+| Name | Data Type | Input Shapes | torch2trt kwargs | Max Error | Throughput (PyTorch) | Throughput (TensorRT) | Latency (PyTorch) | Latency (TensorRT) |
+|------|-----------|--------------|------------------|-----------|----------------------|-----------------------|-------------------|--------------------|
+| torch2trt.tests.torchvision.classification.squeezenet1_0 | float16 | [(1, 3, 224, 224)] | {'fp16_mode': True} | 1.95E-03 | 20.8 | 131 | 51.1 | 8.19 |
+| torch2trt.tests.torchvision.classification.squeezenet1_1 | float16 | [(1, 3, 224, 224)] | {'fp16_mode': True} | N/A | N/A | N/A | N/A | N/A |
