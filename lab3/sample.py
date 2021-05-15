@@ -15,13 +15,14 @@ x = torch.ones((1, 3, 224, 224)).cuda()
 
 # convert to TensorRT feeding sample data as input
 model_trt = torch2trt(model, [x])
-
+print('=======1======')
 # ---------- 2. execute ---------- #
 y = model(x)
 y_trt = model_trt(x)
 
 # check the output against PyTorch
 print(torch.max(torch.abs(y - y_trt)))
+print('=======2======')
 
 # ---------- 3. save ---------- #
 torch.save(model_trt.state_dict(), 'alexnet_trt.pth')

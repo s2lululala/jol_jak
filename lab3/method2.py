@@ -1,4 +1,5 @@
 import torch
+import tensorrt as trt
 from torch2trt import torch2trt ###
 from torchvision import models
 
@@ -56,7 +57,7 @@ top5_prob_trt, top5_catid_trt = torch.topk(probabilities_trt, 5)
 for i in range(top5_prob_trt.size(0)):
     print(categories_trt[top5_catid_trt[i]], top5_prob_trt[i].item())
 
-print(torch.max(torch.abs(y - y_trt))) ### almost 0
+print(torch.max(torch.abs(output - output_trt))) ### almost 0
 
 # save
 torch.save(model.state_dict(), 'mobilenetv2.pth')
@@ -70,7 +71,3 @@ model_trt = TRTModule()
 
 model_trt.load_state_dict(torch.load('mobilenetv2_trt.pth'))
 '''
-| Name | Data Type | Input Shapes | torch2trt kwargs | Max Error | Throughput (PyTorch) | Throughput (TensorRT) | Latency (PyTorch) | Latency (TensorRT) |
-|------|-----------|--------------|------------------|-----------|----------------------|-----------------------|-------------------|--------------------|
-| torch2trt.tests.torchvision.classification.squeezenet1_0 | float16 | [(1, 3, 224, 224)] | {'fp16_mode': True} | 1.95E-03 | 20.8 | 131 | 51.1 | 8.19 |
-| torch2trt.tests.torchvision.classification.squeezenet1_1 | float16 | [(1, 3, 224, 224)] | {'fp16_mode': True} | N/A | N/A | N/A | N/A | N/A |
