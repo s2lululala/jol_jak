@@ -18,7 +18,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 s_img, s_boxes = None, None
 INPUT_HW = (300, 300)
 MAIN_THREAD_TIMEOUT = 60.0  # 20 seconds
-
+WIDTH = 1200
+HEIGHT = 1200
 # SORT Multi object tracking
 
 #iou
@@ -201,8 +202,10 @@ class TrtThread(threading.Thread):
         while self.running:
             ret, img = self.cam.read()
             if img is None:
+                print('soohyun')
+                print(self._ident)
                 break
-            img = cv2.resize(img, (300, 300))
+            img = cv2.resize(img, (WIDTH, HEIGHT))
             boxes, confs, clss = self.trt_ssd.detect(img, self.conf_th)
             with self.condition:
                 s_img, s_boxes = img, boxes
@@ -263,60 +266,51 @@ def get_frame(condition):
                 cx = int((xmin + xmax) / 2)
                 cy = int((ymin + ymax) / 2)
 
-                #IN count
+                                #IN count
                 #if  cx < ((W // 6) * 5) and trk.id not in idcnt:
-                if  idstp[trk.id][0][0] > ((W // 6) * 5) and cx < ((W // 6) * 5) and trk.id not in idcnt:
+                if  300 > idstp[trk.id][0][0] > ((W // 6) * 5) and cx < ((W // 6) * 5) and trk.id not in idcnt:
                     incnt += 1
+                    idstp[trk.id][0][0] = 500
                     print("===========")
-                    print(idstp[trk.id][0])
-                    idstp[trk.id][0][0] = trk.kf.x[0]
-                    idstp[trk.id][0][1] = trk.kf.x[1]
                     print("id: " + str(trk.id) + " - Max Go Left ")
-                    print(idstp[trk.id][0])
                     idcnt.append(trk.id)
 
 
                 #IN count
                 #elif  cx > (W // 6) and trk.id not in idcnt:
-                elif  idstp[trk.id][0][0] < (W // 6) and cx > (W // 6) and trk.id not in idcnt:
+                elif  0 < idstp[trk.id][0][0] < (W // 6) and cx > (W // 6) and trk.id not in idcnt:
                     incnt += 1
+                    idstp[trk.id][0][0] = 500
                     print("===========")
-                    print(idstp[trk.id][0])
-                    idstp[trk.id][0][0] = trk.kf.x[0]
-                    idstp[trk.id][0][1] = trk.kf.x[1]
                     print("id: " + str(trk.id) + " - Min Go Right ")
-                    print(idstp[trk.id][0])
                     idcnt.append(trk.id)
-
-                #OUT count
+ 
+                               #OUT count
                 #elif cx > ((W // 6) * 5) and trk.id in idcnt:
-                elif idstp[trk.id][0][0] > W // 6 and idstp[trk.id][0][0] < ((W // 6) * 5) and cx > ((W // 6) * 5) and trk.id in idcnt:
+                elif idstp[trk.id][0][0] == 500 and cx > ((W // 6) * 5) and trk.id in idcnt:
                     outcnt += 1
                     print("===========")
-                    print(idstp[trk.id][0])
                     print("id: " + str(trk.id) + " - Max Go Right ")
                     idcnt.remove(trk.id)
 
                 #OUT count
                 #elif cx < W // 6 and trk.id in idcnt:
-                elif  idstp[trk.id][0][0] > W // 6 and idstp[trk.id][0][0] < ((W // 6) * 5)  and cx < W // 6 and trk.id in idcnt:
+                elif  idstp[trk.id][0][0] == 500 and cx < W // 6 and trk.id in idcnt:
                     outcnt += 1
                     print("===========")
-                    print(idstp[trk.id][0])
                     print("id: " + str(trk.id) + " - Min Go Left ")
                     idcnt.remove(trk.id)
-
                 cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
                 cv2.putText(img, "id: " + str(trk.id), (int(xmin) - 10, int(ymin) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         #Total, IN, OUT count & Line
-        cv2.putText(img, "Total: " + str(len(trackers)), (15, 25), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
+        cv2.putText(img, "Total: " + str(len(trackers) - len(unmatched_trks)), (15, 25), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
 
         cv2.line(img, (W // 6, 0), (W // 6, H), (255, 0, 0), 3)
         cv2.line(img, ((W // 6) * 5, 0), ((W // 6) * 5, H), (255, 0, 0), 3)
        # cv2.line(img, (0, H // 2), (W, H // 2), (255, 0, 0), 3)
-        cv2.putText(img, "Go Right: " + str(incnt), (10, H // 2 - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(img, "Go Left: " + str(outcnt), (10, H // 2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
+        cv2.putText(img, "In: " + str(incnt), (10, H // 2 - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
+        cv2.putText(img, "Out: " + str(outcnt), (10, H // 2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
 
         # create and initialise new trackers for unmatched detections
         for i in unmatched_dets:
@@ -340,7 +334,7 @@ def get_frame(condition):
 if __name__ == '__main__':
     model = 'ssd_mobilenet_v1_coco'
     path = '../'
-    filePath = os.path.join(path, "our_sample2.mp4")
+    filePath = os.path.join(path, "hard.mp4")
     print(filePath)
 
     if os.path.isfile(filePath):
