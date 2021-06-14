@@ -255,6 +255,7 @@ def get_frame(condition):
         for t in reversed(to_del):
             trackers.pop(t)
         temp_count = 0 
+        temp_count2 = 0 
         matched, unmatched_dets, unmatched_trks = associate_detections_to_trackers(boxes, trks)
         # update matched trackers with assigned detections
         for t, trk in enumerate(trackers):
@@ -265,8 +266,10 @@ def get_frame(condition):
                 cx = int((xmin + xmax) / 2)
                 cy = int((ymin + ymax) / 2)
 
-                if cx < ((W//6) *5) and cx > W//6:
+                if cx < (W // 2) and cx > W//6:
                     temp_count += 1
+                elif cx > (W // 2) and cx < ((W//6) * 5):
+                    temp_count2 += 1
                 #IN count
                 #if  cx < ((W // 6) * 5) and trk.id not in idcnt:
                 if  300 > idstp[trk.id][0][0] > ((W // 6) * 5) and cx < ((W // 6) * 5) and trk.id not in idcnt:
@@ -301,18 +304,28 @@ def get_frame(condition):
                     print("===========")
                     print("id: " + str(trk.id) + " - Min Go Left ")
                     idcnt.remove(trk.id)
-                cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
+                cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (238, 176, 238), 2)
                 #cv2.putText(img, "id: " + str(trk.id), (int(xmin) - 10, int(ymin) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         #Total, IN, OUT count & Line
-        cv2.putText(img, "Check: " + str(temp_count), (15, 50), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
-        cv2.putText(img, "Total: " + str(len(trackers) - len(unmatched_trks)), (15, 25), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
-
-        cv2.line(img, (W // 6, 0), (W // 6, H), (255, 0, 0), 3)
-        cv2.line(img, ((W // 6) * 5, 0), ((W // 6) * 5, H), (255, 0, 0), 3)
+        congestion = len(trackers) - len(unmatched_trks)
+        if congestion <= 1:
+            cv2.putText(img, "Good  : " + str(len(trackers) - len(unmatched_trks)), (15, 25), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 0), 1)
+        elif congestion <= 2:
+            cv2.putText(img, "Normal: " + str(len(trackers) - len(unmatched_trks)), (15, 25), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 255, 255), 1)
+        elif congestion <= 3:
+            cv2.putText(img, "Bad   : " + str(len(trackers) - len(unmatched_trks)), (15, 25), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 255), 1)
+        cv2.putText(img, "Table A: " + str(temp_count), (15, 50), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 1)
+        cv2.putText(img, "Table B: " + str(temp_count2), (15, 75), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 1)
+        
+        cv2.rectangle(img, (W//6, (H//6)*5), (W // 2, H // 3), (255, 154, 122), 2)
+        cv2.putText(img, "Table A", (int(W//6), int((H//3)) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
+        cv2.rectangle(img, (W//2, (H//6)*5), ((W // 6)*5, H // 3), (255, 154, 122), 2)
+        cv2.putText(img, "Table B" , (int((W//2)), int((H//3)) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
+        #cv2.line(img, (W // 6, 0), (W // 6, H), (173, 154, 122), 3)
+        #cv2.line(img, ((W // 2), 0), (W // 2, H), (173, 154, 122), 3)
+        #cv2.line(img, ((W // 6) * 5, 0), ((W // 6) * 5, H), (173, 154, 122), 3)
        # cv2.line(img, (0, H // 2), (W, H // 2), (255, 0, 0), 3)
-        cv2.putText(img, "In: " + str(incnt), (10, H // 2 - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(img, "Out: " + str(outcnt), (10, H // 2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
 
         # create and initialise new trackers for unmatched detections
         for i in unmatched_dets:
